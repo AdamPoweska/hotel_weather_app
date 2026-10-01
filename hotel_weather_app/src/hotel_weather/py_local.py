@@ -32,8 +32,8 @@ weather_schema = StructType([
     StructField("wthr_day", StringType(), True)
 ])
 
-BASE_PATH_HOTEL = "../../../../../m06sparkbasics/m06sparkbasics/hotels"
-BASE_PATH_WEATHER = "../../../../../m06sparkbasics/m06sparkbasics/weather"
+BASE_PATH_HOTEL = "../../../../../hotel_weather_data/hotels"
+BASE_PATH_WEATHER = "../../../../../hotel_weather_data/weather"
 
 hotel_df = (
     spark.read
