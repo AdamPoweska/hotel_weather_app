@@ -1,7 +1,7 @@
 from pathlib import Path
 
 # Project root
-PROJECT_ROOT = Path(__file__).resolve().parents(4)
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
 
 # Data paths
 DATA_DIR = PROJECT_ROOT / "hotel_weather_data"
