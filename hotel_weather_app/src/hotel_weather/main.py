@@ -6,7 +6,12 @@ from config import (
     SPARK_DRIVER_MEMORY,
     HOTELS_PATH,
     WEATHER_PATH,
+    HOTELS_EXT,
+    WEATHER_EXT,
 )
+
+from schemas import hotel_schema, weather_schema
+from readers import data_read
 
 """
 from hotel_weather.readers import read_hotels, read_weather
@@ -33,14 +38,19 @@ def main():
         memory=SPARK_DRIVER_MEMORY
     )
 
-    # try:
-    #     hotels_df = read_hotels(spark, HOTELS_PATH)
-    #     weather_df = read_weather(spark, WEATHER_PATH)
+    hotels_df = data_read(spark, HOTELS_EXT, hotel_schema, HOTELS_PATH)
+    weather_df = data_read(spark, WEATHER_EXT, weather_schema, WEATHER_PATH)
+    hotels_df.show(100, truncate=False)
+    weather_df.show(100, truncate=False)
 
-    #     result_df = join_hotel_weather(
-    #         hotels_df,
-    #         weather_df
-    #     )
+    # try:
+    #     hotels_df = data_read(spark, HOTELS_EXT, hotel_schema, HOTELS_PATH)
+    #     weather_df = data_read(spark, WEATHER_PATH, weather_schema, WEATHER_EXT)
+
+        # result_df = join_hotel_weather(
+        #     hotels_df,
+        #     weather_df
+        # )
 
     #     result_df.show()
 
