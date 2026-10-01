@@ -1,0 +1,8 @@
+#!/bin/sh
+'''exec' "/home/adam/Pulpit/coding/EPAM/Data Engineering Program/Data Engineering Program/09 SPARK BASICS/Excercise - Code/Forked repo/TASK1venv/bin/python3" "$0" "$@"
+' '''
+import sys
+from idna.cli import main
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(main())
