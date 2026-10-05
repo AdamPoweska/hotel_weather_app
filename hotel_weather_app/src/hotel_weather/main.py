@@ -1,6 +1,9 @@
 import pygeohash as pgh
 # from pathlib import Path
 from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+from pyspark.sql.functions import col
+from pyspark.sql.types import StringType
 
 from src.hotel_weather.config import (
     PROJECT_ROOT,
@@ -36,6 +39,12 @@ def create_spark_session(name, cores_no, memory):
         .getOrCreate()
     )
 
+@F.udf(returnType=StringType())
+def geohash4(lat, lon):
+    if lat is None or lon is None:
+        return None # zmienić na wywołanie API
+    return pgh.encode(lat, lon, precision=4)
+
 
 def main():
     """
@@ -50,24 +59,48 @@ def main():
     lat, lng = pgh.decode(geohash=geohash)
     print(lat, lng)
     """
-
+    # tworzymy sparka
     spark = create_spark_session(
         name=APP_NAME,
         cores_no=SPARK_MASTER,
         memory=SPARK_DRIVER_MEMORY
     )
 
-    # PROJECT_ROOT = Path(__file__).resolve().parents[2]
-    # load_dotenv(PROJECT_ROOT / ".env")
+    # client geoapify
+    geo_client = geoapify.GeoapifyClient(api_key=API_KEY, url=GEOAPIFY_URL)
 
-    # API_KEY = os.environ["GEOAPIFY_API_KEY"]
-    # geo_client = geoapify.GeoapifyClient(api_key=API_KEY, url=GEOAPIFY_URL)
+    # hotel df i zmiana kolumn z str na double
+    hotels_df = data_read(spark, HOTELS_EXT, hotel_schema, HOTELS_PATH)
+    hotels_df = hotels_df.withColumn("Latitude", col("Latitude").cast("double"))
+    hotels_df = hotels_df.withColumn("Longitude", col("Longitude").cast("double"))
+
+    # weather df
+    weather_df = data_read(spark, WEATHER_EXT, weather_schema, WEATHER_PATH)
+
+
+    hotels_df = hotels_df.withColumn("geohash", geohash4("Latitude", "Longitude"))
+    weather_df = weather_df.withColumn("geohash", geohash4("lat", "lng"))
+
+    # hotels_df.show(100, truncate=False)
+    # weather_df.show(100, truncate=False)
+
+    hotels_df.select("Name", "Latitude", "Longitude", "geohash").show(10, truncate=False)
+    hotels_df.filter(F.col("geohash").isNull()).count()   # ile hoteli bez hasha
+
     # coords = geo_client.geocode("Americana Resort Properties US Dillon 135 Main St")
     # print(coords)
-    hotels_df = data_read(spark, HOTELS_EXT, hotel_schema, HOTELS_PATH)
-    weather_df = data_read(spark, WEATHER_EXT, weather_schema, WEATHER_PATH)
-    hotels_df.show(100, truncate=False)
-    weather_df.show(100, truncate=False)
+    
+    # coords = (-33.481565, 150.156498)
+    # print(coords[0])
+    # geohash = pgh.encode(coords[0], coords[1])
+    # print(geohash)
+    # lat, lng = pgh.decode(geohash=geohash)
+    # print(lat, lng)
+
+    # hotels_df = data_read(spark, HOTELS_EXT, hotel_schema, HOTELS_PATH)
+    # weather_df = data_read(spark, WEATHER_EXT, weather_schema, WEATHER_PATH)
+    # hotels_df.show(100, truncate=False)
+    # weather_df.show(100, truncate=False)
 
     # try:
     #     hotels_df = data_read(spark, HOTELS_EXT, hotel_schema, HOTELS_PATH)
