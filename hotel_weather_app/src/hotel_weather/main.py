@@ -21,10 +21,11 @@ from src.hotel_weather.config import (
 from src.hotel_weather.schemas import hotel_schema, weather_schema
 from src.hotel_weather.readers import data_read
 from src.geo import geoapify
+from src.hotel_weather.transformations.hotel_transformations import fill_missing_coordinates, add_geohash
 
 """
 from hotel_weather.readers import read_hotels, read_weather
-from hotel_weather.transformations import join_hotel_weather
+
 """
 
 def create_spark_session(name, cores_no, memory):
@@ -42,7 +43,7 @@ def create_spark_session(name, cores_no, memory):
 @F.udf(returnType=StringType())
 def geohash4(lat, lon):
     if lat is None or lon is None:
-        return None # zmienić na wywołanie API
+        return None
     return pgh.encode(lat, lon, precision=4)
 
 
@@ -69,17 +70,25 @@ def main():
     # client geoapify
     geo_client = geoapify.GeoapifyClient(api_key=API_KEY, url=GEOAPIFY_URL)
 
-    # hotel df i zmiana kolumn z str na double
+    # Zaczytanie danych do df
     hotels_df = data_read(spark, HOTELS_EXT, hotel_schema, HOTELS_PATH)
-    hotels_df = hotels_df.withColumn("Latitude", col("Latitude").cast("double"))
-    hotels_df = hotels_df.withColumn("Longitude", col("Longitude").cast("double"))
-
-    # weather df
     weather_df = data_read(spark, WEATHER_EXT, weather_schema, WEATHER_PATH)
 
+    # uzupełnenie danych
+    hotels_df = fill_missing_coordinates(spark, hotels_df, geo_client)
+    hotels_df = add_geohash(hotels_df, "Latitude", "Longitude")
+    weather_df = add_geohash(weather_df, "lat", "lng")
 
-    hotels_df = hotels_df.withColumn("geohash", geohash4("Latitude", "Longitude"))
-    weather_df = weather_df.withColumn("geohash", geohash4("lat", "lng"))
+    # stare:
+    # hotels_df = hotels_df.withColumn("Latitude", col("Latitude").cast("double"))
+    # hotels_df = hotels_df.withColumn("Longitude", col("Longitude").cast("double"))
+
+    # weather df
+    
+
+
+    # hotels_df = hotels_df.withColumn("geohash", geohash4("Latitude", "Longitude"))
+    # weather_df = weather_df.withColumn("geohash", geohash4("lat", "lng"))
 
     # hotels_df.show(100, truncate=False)
     # weather_df.show(100, truncate=False)
