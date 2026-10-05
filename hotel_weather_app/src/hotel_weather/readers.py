@@ -1,13 +1,10 @@
-
-def data_read(spark, file_ext, schema, file_dir):
-    """
-    Returns hotel df/dataframe.
-    """
-    return (
+def data_read(spark, file_ext, schema, file_dir, file_format="csv"):
+    reader = (
         spark.read
-        .option("header", True)
+        .format(file_format)
         .option("recursiveFileLookup", True)
         .option("pathGlobFilter", file_ext)
-        .schema(schema)
-        .csv(file_dir)
     )
+    if file_format == "csv":
+        reader = reader.option("header", True).schema(schema)
+    return reader.load(file_dir)

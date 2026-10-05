@@ -71,8 +71,8 @@ def main():
     geo_client = geoapify.GeoapifyClient(api_key=API_KEY, url=GEOAPIFY_URL)
 
     # Zaczytanie danych do df
-    hotels_df = data_read(spark, HOTELS_EXT, hotel_schema, HOTELS_PATH)
-    weather_df = data_read(spark, WEATHER_EXT, weather_schema, WEATHER_PATH)
+    hotels_df = data_read(spark, HOTELS_EXT, hotel_schema, HOTELS_PATH, "csv")
+    weather_df = data_read(spark, WEATHER_EXT, None, WEATHER_PATH, "parquet") # for parquet schema is in the file, no need to pass it
 
     # uzupełnenie danych
     hotels_df = fill_missing_coordinates(spark, hotels_df, geo_client)
@@ -94,7 +94,19 @@ def main():
     # weather_df.show(100, truncate=False)
 
     hotels_df.select("Name", "Latitude", "Longitude", "geohash").show(10, truncate=False)
-    hotels_df.filter(F.col("geohash").isNull()).count()   # ile hoteli bez hasha
+    weather_df.show(100, truncate=False)
+    
+    for name, df in [("hotels", hotels_df), ("weather", weather_df)]:
+        print(name, "wierszy:", df.count(), 
+            "| bez geohasha:", df.filter(F.col("geohash").isNull()).count())
+    df.select("geohash").distinct().show(5)
+
+    hotels_df.select("geohash").filter(F.length("geohash") != 4).count()  # powinno być 0
+    
+    weather_df.printSchema()
+    weather_df.show(5, truncate=False)
+    # hotels_df.filter(F.col("geohash").isNull()).count().show(10)   # ile hoteli bez hasha
+    # weather_df.show(100, truncate=False)
 
     # coords = geo_client.geocode("Americana Resort Properties US Dillon 135 Main St")
     # print(coords)
