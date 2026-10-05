@@ -1,10 +1,17 @@
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Project root
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DATA_ROOT = Path(__file__).resolve().parents[4]
+
+# API Key
+load_dotenv(PROJECT_ROOT / ".env")
+API_KEY = os.environ["GEOAPIFY_API_KEY"]
 
 # Data paths
-DATA_DIR = PROJECT_ROOT / "hotel_weather_data"
+DATA_DIR = DATA_ROOT / "hotel_weather_data"
 HOTELS_PATH = str(DATA_DIR / "hotels")
 WEATHER_PATH = str(DATA_DIR / "weather")
 
@@ -16,3 +23,6 @@ SPARK_DRIVER_MEMORY = "1g"
 # File extensions
 HOTELS_EXT = "*.csv.gz"
 WEATHER_EXT = "*.c000.snappy.parquet"
+
+# URLs
+GEOAPIFY_URL = "https://api.geoapify.com/v1/geocode/search"

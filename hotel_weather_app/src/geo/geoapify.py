@@ -3,14 +3,10 @@ import time
 import requests
 
 
-# API_KEY = os.environ["GEOAPIFY_API_KEY"]
-
-
 class GeoapifyClient:
-    GEOAPIFY_URL = "https://api.geoapify.com/v1/geocode/search"
-
-    def __init__(self, api_key: str, retries: int = 3, timeout: int = 10):
+    def __init__(self, api_key: str, url: str, retries: int = 3, timeout: int = 10):
         self.api_key = api_key
+        self.url = url
         self.retries = retries
         self.timeout = timeout
         self._session = requests.Session()
@@ -23,7 +19,7 @@ class GeoapifyClient:
 
         for attempt in range(self.retries):
             try:
-                response = self._session.get(self.GEOAPIFY_URL, params=params, timeout=10)
+                response = self._session.get(self.url, params=params, timeout=10)
                 if response.status_code == 429:
                     time.sleep(2 ** attempt)
                     continue
