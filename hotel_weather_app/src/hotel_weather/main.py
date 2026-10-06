@@ -16,12 +16,13 @@ from src.hotel_weather.config import (
     WEATHER_EXT,
     GEOAPIFY_URL,
     API_KEY,
+    OUTPUT_PATH,
 )
 
 from src.hotel_weather.schemas import hotel_schema, weather_schema
 from src.hotel_weather.readers import data_read
 from src.geo import geoapify
-from src.hotel_weather.transformations.hotel_transformations import fill_missing_coordinates, add_geohash
+from src.hotel_weather.transformations.transformations import fill_missing_coordinates, add_geohash, join_weather_hotels
 
 """
 from hotel_weather.readers import read_hotels, read_weather
@@ -74,10 +75,43 @@ def main():
     hotels_df = data_read(spark, HOTELS_EXT, hotel_schema, HOTELS_PATH, "csv")
     weather_df = data_read(spark, WEATHER_EXT, None, WEATHER_PATH, "parquet") # for parquet schema is in the file, no need to pass it
 
-    # uzupełnenie danych
-    hotels_df = fill_missing_coordinates(spark, hotels_df, geo_client)
-    hotels_df = add_geohash(hotels_df, "Latitude", "Longitude")
-    weather_df = add_geohash(weather_df, "lat", "lng")
+    hotels_df.show(1000)
+    # weather_df.show(1000)
+
+    ###################################################
+    # uzupełnenie danych - to potem ma znów działać
+    # hotels_df = fill_missing_coordinates(spark, hotels_df, geo_client)
+    # hotels_df = add_geohash(hotels_df, "Latitude", "Longitude")
+    # weather_df = add_geohash(weather_df, "lat", "lng")
+
+    # spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")
+
+    # enriched_df = join_weather_hotels(weather_df, hotels_df)
+
+    # (
+    #     enriched_df
+    #     .repartition("year", "month", "day")
+    #     .write
+    #     .mode("overwrite")
+    #     .partitionBy("year", "month", "day")
+    #     .parquet(OUTPUT_PATH)
+    # )
+    ################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # stare:
     # hotels_df = hotels_df.withColumn("Latitude", col("Latitude").cast("double"))
@@ -93,6 +127,8 @@ def main():
     # hotels_df.show(100, truncate=False)
     # weather_df.show(100, truncate=False)
 
+    """
+    Wcześniejsze testy:
     hotels_df.select("Name", "Latitude", "Longitude", "geohash").show(10, truncate=False)
     weather_df.show(100, truncate=False)
     
@@ -105,6 +141,8 @@ def main():
     
     weather_df.printSchema()
     weather_df.show(5, truncate=False)
+    """
+
     # hotels_df.filter(F.col("geohash").isNull()).count().show(10)   # ile hoteli bez hasha
     # weather_df.show(100, truncate=False)
 

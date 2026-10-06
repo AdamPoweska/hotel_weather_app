@@ -60,3 +60,19 @@ def _geohash4_udf(lat, lon):
 
 def add_geohash(df: DataFrame, lat_col: str, lon_col: str) -> DataFrame:
     return df.withColumn("geohash", _geohash4_udf(lat_col, lon_col))
+
+
+def join_weather_hotels(weather_df: DataFrame, hotels_df: DataFrame) -> DataFrame:
+    weather = weather_df.dropDuplicates()
+    hotels = hotels_df.dropDuplicates(["Id"])
+
+    enriched = weather.join(F.broadcast(hotels), on="geohash", how="left")
+
+    # kolumny partycjonujące z daty obserwacji
+    d = F.to_date("wthr_date")
+    return (
+        enriched
+        .withColumn("year", F.year(d))
+        .withColumn("month", F.month(d))
+        .withColumn("day", F.dayofmonth(d))
+    )
