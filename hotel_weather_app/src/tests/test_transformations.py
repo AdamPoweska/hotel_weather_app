@@ -1,9 +1,7 @@
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType
-from conf_test import spark
 
 from hotel_weather_app.src.hotel_weather.transformations import add_geohash, fill_missing_coordinates, join_weather_hotels
-# from hotel_weather_app.src.geo.geoapify import GeoapifyClient
-# from hotel_weather_app.src.geo.geoapify import GeoapifyClient
+
 
 def test_geohash_has_4_chars_and_known_value(spark):
     # Wikipedia: 57.64911, 10.40744 = "u4pruydqqvj"
