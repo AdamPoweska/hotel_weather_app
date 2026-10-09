@@ -6,7 +6,8 @@ A PySpark ETL job that enriches weather observations with hotel data. Missing ho
 2. **Fill missing coordinates**: hotels with missing `Latitude` / `Longitude` are geocoded with the [Geoapify Geocoding API](https://www.geoapify.com/geocoding-api)
 3. **Generate a Geohash**: a 4-character Geohash from latitude and longitude (`pygeohash`) is added to both datasets
 4. **Join**: left join of weather with hotels on the Geohash column
-5. **Store** the enriched data as Parquet, partitioned by `year/month/day`
+5. **Encrypt sensitive data**
+6. **Store** the enriched data as Parquet, partitioned by `year/month/day`
 
 ## Project structure
 hotel_weather_app/
@@ -31,6 +32,7 @@ pip install pyspark pygeohash requests python-dotenv
 ## Configuration
 Create a `.env` file in the project root (it is listed in `.gitignore`):
 GEOAPIFY_API_KEY=your_token_here
+PII_ENCRYPTION_KEY=our_key_here
 
 Data and output paths, Spark memory and file patterns are set in `src/hotel_weather/config.py`.
 

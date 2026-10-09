@@ -16,16 +16,17 @@ from src.hotel_weather.config import (
     GEOAPIFY_URL,
     API_KEY,
     OUTPUT_PATH,
+    PII_FIELDS,
 )
 
 from src.hotel_weather.schemas import hotel_schema, weather_schema
 from src.hotel_weather.readers import data_read
 from src.geo import geoapify
 from src.hotel_weather.transformations.transformations import fill_missing_coordinates, add_geohash, join_weather_hotels
+from src.hotel_weather.encryption import PIIEncryptor
 
 """
 from hotel_weather.readers import read_hotels, read_weather
-
 """
 
 def create_spark_session(name, cores_no, memory):
@@ -74,6 +75,7 @@ def main():
 
     # enriching data
     enriched_df = join_weather_hotels(weather_df, hotels_df)
+    enriched_df = PIIEncryptor().encrypt(enriched_df, PII_FIELDS)
 
     # write
     (

@@ -27,3 +27,6 @@ WEATHER_EXT = "*.c000.snappy.parquet"
 
 # URLs
 GEOAPIFY_URL = "https://api.geoapify.com/v1/geocode/search"
+
+# PII
+PII_FIELDS = ["Name", "Address"]
